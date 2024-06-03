@@ -1,0 +1,4 @@
+weblinx
+sentence-transformers
+huggingface_hub
+torch
