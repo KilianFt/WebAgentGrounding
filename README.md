@@ -1,4 +1,4 @@
-# WebAgentGrounding
+# Web Agent - Grounding
 
 ## Running the baseline
 Run the baseline with
