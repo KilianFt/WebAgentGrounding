@@ -12,8 +12,8 @@ from weblinx.utils.recs import ungroup_dict_to_records
 
 from weblinx_baseline.preprocessing import build_records_for_single_demo, build_formatters
 
-from eval import evaluate
-from model import GroundingModel
+from grounding.eval import evaluate
+from grounding.model import GroundingModel
 
 
 def run_model_and_update_groups(
@@ -92,7 +92,7 @@ class WeblinxGrounding(GroundingModel):
 
         return input_grouped
 
-    def predict_score(self, samples):
+    def predict_score(self, samples: dict, group_scores: bool = False):
         huggingface_model = "McGill-NLP/bge-small-dmr" # currently highest on leaderboard
         model = SentenceTransformer(huggingface_model)
 
@@ -116,7 +116,11 @@ class WeblinxGrounding(GroundingModel):
             for r in group:
                 r["rank"] = ranks[r["uid"]]
 
-        input_records = ungroup_dict_to_records(samples)
+        if group_scores:
+            input_records = samples
+        else:
+            input_records = ungroup_dict_to_records(samples)
+
         return input_records
 
 

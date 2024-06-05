@@ -73,6 +73,7 @@ def calculate_metrics(scores, demos, split):
 
     # TODO semantic similarity between predictions and labels
     # results["semantic_similarity"] = ...
+    # FIXME this is really the action model's job
 
     return results
 
