@@ -7,10 +7,7 @@ from tqdm import tqdm
 import torch
 from sentence_transformers import SentenceTransformer
 from sentence_transformers.util import cos_sim, dot_score
-from weblinx.processing import group_record_to_dict
 from weblinx.utils.recs import ungroup_dict_to_records
-
-from weblinx_baseline.preprocessing import build_records_for_single_demo, build_formatters
 
 from grounding.eval import evaluate
 from grounding.model import GroundingModel
@@ -67,31 +64,6 @@ def verify_queries_are_all_the_same(grouped_records: dict) -> bool:
 
 
 class WeblinxGrounding(GroundingModel):
-
-    def preprocess(self, demos):
-        format_intent_input, _ = build_formatters()
-        input_records: List[dict] = []
-        logging.info(f"Number of demos: {len(demos)}. Starting building records.")
-        for demo in tqdm(demos, desc="Building input records"):
-            demo_records = build_records_for_single_demo(
-                demo=demo,
-                format_intent_input=format_intent_input,
-                max_neg_per_turn=None,
-                only_allow_valid_uid=False,
-            )
-            input_records.extend(demo_records)
-        logging.info(f"Completed. Number of input records: {len(input_records)}")
-
-        # Group records by (demo_name, turn_index) pairs
-        input_grouped = group_record_to_dict(
-            input_records, keys=["demo_name", "turn_index"], remove_keys=False
-        )
-        # Verify that queries are all the same within each group
-        error_msg = "Queries are not all the same within each group"
-        assert verify_queries_are_all_the_same(input_grouped), error_msg
-
-        return input_grouped
-
     def predict_score(self, samples: dict, group_scores: bool = False):
         huggingface_model = "McGill-NLP/bge-small-dmr" # currently highest on leaderboard
         model = SentenceTransformer(huggingface_model)

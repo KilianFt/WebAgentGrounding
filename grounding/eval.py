@@ -6,6 +6,7 @@ from datetime import datetime
 from huggingface_hub import snapshot_download
 
 import weblinx as wl
+from weblinx.utils.recs import ungroup_dict_to_records
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -59,7 +60,7 @@ def mean_reciprocal_rank(input_records, label_key="label", rank_key="rank", k=No
     return mrr
 
 
-def calculate_metrics(scores, demos, split):
+def calculate_ranking_metrics(scores, demos, split):
     results = {
         "split": split,
         "num_turns": len(scores),
@@ -70,10 +71,6 @@ def calculate_metrics(scores, demos, split):
     ks = [1, 5, 10, 20, 50, 100, 200]
     for k in ks:
         results[f"recall@{k}"] = recall_at_k(scores, k=k)
-
-    # TODO semantic similarity between predictions and labels
-    # results["semantic_similarity"] = ...
-    # FIXME this is really the action model's job
 
     return results
 
@@ -91,10 +88,11 @@ def evaluate(grounding_model, split, model_name=""):
     demos = load_data(dataset_dir, demo_names)
 
     # process data with own model
-    scores = grounding_model.predict(demos)
+    candidates = grounding_model.predict(demos, group_scores = True)
+    scores = ungroup_dict_to_records(candidates)
 
     # calculate metrics
-    results = calculate_metrics(scores, demos, split)
+    results = calculate_ranking_metrics(scores, demos, split)
 
     logging.info(results)
 
